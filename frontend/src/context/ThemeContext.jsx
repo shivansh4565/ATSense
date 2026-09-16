@@ -1,16 +1,18 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 
 const ThemeContext = createContext(null);
 
 const STORAGE_KEY = "arr-theme";
 
+// Always start in LIGHT mode
 function resolveInitial() {
-  if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return "light";
 }
 
 export function ThemeProvider({ children }) {
@@ -21,13 +23,20 @@ export function ThemeProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
-  const toggle = useCallback(
-    () => setTheme((t) => (t === "light" ? "dark" : "light")),
-    []
-  );
+  const toggle = useCallback(() => {
+    setTheme((currentTheme) =>
+      currentTheme === "light" ? "dark" : "light"
+    );
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggle }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        setTheme,
+        toggle,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
@@ -35,6 +44,10 @@ export function ThemeProvider({ children }) {
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
+
+  if (!ctx) {
+    throw new Error("useTheme must be used inside ThemeProvider");
+  }
+
   return ctx;
 }
